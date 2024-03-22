@@ -1,3 +1,4 @@
+// Flags: --test-reporter=./test/common/test-error-reporter.js
 'use strict';
 require('../common');
 const fixtures = require('../common/fixtures');
