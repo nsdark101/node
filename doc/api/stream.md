@@ -2698,7 +2698,7 @@ The utility function `duplexPair` returns an Array with two items,
 each being a `Duplex` stream connected to the other side:
 
 ```js
-const [ clientSide, serverSide ] = duplexPair();
+const [ sideA, sideB ] = duplexPair();
 ```
 
 Whatever is written to one stream is made readable on the other. It provides
