@@ -624,6 +624,10 @@ EnvironmentOptionsParser::EnvironmentOptionsParser() {
             "set environment variables from supplied file",
             &EnvironmentOptions::env_file);
   Implies("--env-file", "[has_env_file_string]");
+  AddOption("--optional-env-file",
+            "set environment variables from supplied file, but won't fail if the file doesn't exist",
+            &EnvironmentOptions::optional_env_file);
+  Implies("--optional-env-file", "[has_env_file_string]");
   AddOption("--test",
             "launch test runner on startup",
             &EnvironmentOptions::test_runner);
