@@ -29,7 +29,6 @@ describe('.env supports edge cases', () => {
   });
 
   it('supports multiple declarations, including optional ones', async () => {
-    // process.env.BASIC is equal to `OPTIONALLY LOADED` because the third .env file overrides it.
     const code = `
       const assert = require('assert');
       assert.strictEqual(process.env.BASIC, 'OPTIONALLY LOADED');
