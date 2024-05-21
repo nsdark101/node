@@ -860,7 +860,7 @@ export USERNAME="nodejs" # will result in `nodejs` as the value.
 ```
 
 If you want to load environment variables from a file that does not exist, you
-can use the [`--optional-env-file`](#optional-env-fileconfig) flag instead.
+can use the [`--optional-env-file`][] flag instead.
 
 ### `-e`, `--eval "script"`
 
@@ -1699,9 +1699,8 @@ Node.js which is `nodejs_conf` and is default when this option is not used.
 
 ### `--optional-env-file=config`
 
-Behaviour is the same as [`--env-file`](#env-fileconfig), but an error is not thrown if the file
+Behaviour is the same as [`--env-file`][], but an error is not thrown if the file
 does not exist.
-
 
 ### `--pending-deprecation`
 
