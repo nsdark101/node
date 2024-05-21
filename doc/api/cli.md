@@ -860,7 +860,7 @@ export USERNAME="nodejs" # will result in `nodejs` as the value.
 ```
 
 If you want to load environment variables from a file that does not exist, you
-can use the [`--optional-env-file`][] flag instead.
+can use the [`--env-file-optional`][] flag instead.
 
 ### `-e`, `--eval "script"`
 
@@ -1697,7 +1697,7 @@ is being linked to Node.js. Sharing the OpenSSL configuration may have unwanted
 implications and it is recommended to use a configuration section specific to
 Node.js which is `nodejs_conf` and is default when this option is not used.
 
-### `--optional-env-file=config`
+### `--env-file-optional=config`
 
 Behaviour is the same as [`--env-file`][], but an error is not thrown if the file
 does not exist.
@@ -3396,6 +3396,8 @@ node --stack-trace-limit=12 -p -e "Error.stackTraceLimit" # prints 12
 [`--build-snapshot`]: #--build-snapshot
 [`--cpu-prof-dir`]: #--cpu-prof-dir
 [`--diagnostic-dir`]: #--diagnostic-dirdirectory
+[`--env-file-optional`]: #--env-file-optionalconfig
+[`--env-file`]: #--env-fileconfig
 [`--experimental-default-type=module`]: #--experimental-default-typetype
 [`--experimental-sea-config`]: single-executable-applications.md#generating-single-executable-preparation-blobs
 [`--experimental-wasm-modules`]: #--experimental-wasm-modules

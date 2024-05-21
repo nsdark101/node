@@ -13,14 +13,13 @@ using v8::String;
 
 std::vector<Dotenv::env_file_data> Dotenv::GetEnvFileDataFromArgs(
     const std::vector<std::string>& args) {
-  const std::string_view env_file_flag = "--env-file";
+  const std::string_view optional_env_file_flag = "--env-file-optional";
 
   const auto find_match = [](const std::string& arg) {
     const std::string_view env_file_flag = "--env-file";
-    const std::string_view optional_env_file_flag = "--optional-env-file";
-    return strncmp(arg.c_str(),
-                    env_file_flag.data(),
-                    env_file_flag.size()) == 0 ||
+    const std::string_view optional_env_file_flag = "--env-file-optional";
+    return strncmp(arg.c_str(), env_file_flag.data(), env_file_flag.size()) ==
+               0 ||
            strncmp(arg.c_str(),
                    optional_env_file_flag.data(),
                    optional_env_file_flag.size()) == 0;
@@ -34,23 +33,29 @@ std::vector<Dotenv::env_file_data> Dotenv::GetEnvFileDataFromArgs(
     auto equal_char = matched_arg->find('=');
 
     if (equal_char != std::string::npos) {
+      // `--env-file=path`
       auto flag = matched_arg->substr(0, equal_char);
       struct env_file_data env_file_data = {
           matched_arg->substr(equal_char + 1),
-          strncmp(flag.c_str(), env_file_flag.data(), env_file_flag.size()) ==
-              0};
+          strncmp(flag.c_str(),
+                  optional_env_file_flag.data(),
+                  optional_env_file_flag.size()) != 0
+        };
       env_files.push_back(env_file_data);
     } else {
+      // `--env-file path`
       auto file_path = std::next(matched_arg);
 
       if (file_path == args.end()) {
         return env_files;
       }
 
-      struct env_file_data env_file_data = {*file_path,
-                                            strncmp(matched_arg->c_str(),
-                                                    env_file_flag.data(),
-                                                    env_file_flag.size()) == 0};
+      struct env_file_data env_file_data = {
+        *file_path,
+        strncmp(matched_arg->c_str(),
+                optional_env_file_flag.data(),
+                optional_env_file_flag.size()) != 0
+        };
       env_files.push_back(env_file_data);
     }
 
