@@ -859,7 +859,7 @@ Export keyword before a key is ignored:
 export USERNAME="nodejs" # will result in `nodejs` as the value.
 ```
 
-If you want to load environment variables from a file that does not exist, you
+If you want to load environment variables from a file that may not exist, you
 can use the [`--env-file-optional`][] flag instead.
 
 ### `-e`, `--eval "script"`
@@ -1699,7 +1699,7 @@ Node.js which is `nodejs_conf` and is default when this option is not used.
 
 ### `--env-file-optional=config`
 
-Behaviour is the same as [`--env-file`][], but an error is not thrown if the file
+Behavior is the same as [`--env-file`][], but an error is not thrown if the file
 does not exist.
 
 ### `--pending-deprecation`
