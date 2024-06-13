@@ -46,6 +46,8 @@ namespace node {
 namespace worker {
 
 constexpr double kMB = 1024 * 1024;
+std::atomic_bool Worker::hooksWorkerExists{false};
+Mutex Worker::instantiationMutex;
 
 Worker::Worker(Environment* env,
                Local<Object> wrap,
@@ -483,6 +485,7 @@ Worker::~Worker() {
 }
 
 void Worker::New(const FunctionCallbackInfo<Value>& args) {
+  Mutex::ScopedLock lock(instantiationMutex);
   Environment* env = Environment::GetCurrent(args);
   auto is_internal = args[5];
   CHECK(is_internal->IsBoolean());
@@ -493,6 +496,16 @@ void Worker::New(const FunctionCallbackInfo<Value>& args) {
   Isolate* isolate = args.GetIsolate();
 
   CHECK(args.IsConstructCall());
+
+  if (is_internal->IsTrue()) {
+    if (hooksWorkerExists) {
+      isolate->ThrowException(ERR_HOOKS_THREAD_EXISTS(
+          isolate, "Customization hooks thread already exists"));
+      return;
+    } else {
+      hooksWorkerExists = true;
+    }
+  }
 
   if (env->isolate_data()->platform() == nullptr) {
     THROW_ERR_MISSING_PLATFORM_FOR_WORKER(env);
@@ -903,6 +916,10 @@ void Worker::LoopStartTime(const FunctionCallbackInfo<Value>& args) {
   args.GetReturnValue().Set(loop_start_time / 1e6);
 }
 
+void Worker::HasHooksThread(const FunctionCallbackInfo<Value>& args) {
+  args.GetReturnValue().Set(Worker::hooksWorkerExists);
+}
+
 namespace {
 
 // Return the MessagePort that is global for this Environment and communicates
@@ -940,6 +957,8 @@ void CreateWorkerPerIsolateProperties(IsolateData* isolate_data,
     SetProtoMethod(isolate, w, "loopStartTime", Worker::LoopStartTime);
 
     SetConstructorFunction(isolate, target, "Worker", w);
+    SetMethodNoSideEffect(
+        isolate, target, "hasHooksThread", Worker::HasHooksThread);
   }
 
   {
@@ -1011,6 +1030,7 @@ void RegisterExternalReferences(ExternalReferenceRegistry* registry) {
   registry->Register(Worker::TakeHeapSnapshot);
   registry->Register(Worker::LoopIdleTime);
   registry->Register(Worker::LoopStartTime);
+  registry->Register(Worker::HasHooksThread);
 }
 
 }  // anonymous namespace

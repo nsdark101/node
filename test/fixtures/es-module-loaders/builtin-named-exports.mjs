@@ -3,7 +3,7 @@ import { createRequire, register } from 'node:module';
 
 const require = createRequire(import.meta.url);
 
-const GET_BUILTIN = `$__get_builtin_hole_${Date.now()}`;
+const GET_BUILTIN = `$__get_builtin_hole_${~~(Date.now()/10000)}`;
 Object.defineProperty(globalThis, GET_BUILTIN, {
   value: builtinName => require(builtinName),
   enumerable: false,
@@ -13,5 +13,6 @@ Object.defineProperty(globalThis, GET_BUILTIN, {
 register(fixtures.fileURL('es-module-loaders/builtin-named-exports-loader.mjs'), {
   data: {
     GET_BUILTIN,
+    entrypoint: process.argv.at(-1),
   },
 });
