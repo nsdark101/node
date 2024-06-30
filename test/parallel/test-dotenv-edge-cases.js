@@ -36,7 +36,7 @@ describe('.env supports edge cases', () => {
     `.trim();
     const child = await common.spawnPromisified(
       process.execPath,
-      [ `--env-file=${nodeOptionsEnvFilePath}`, `--env-file-optional=${optionalEnvFilePath}`, "--eval", code ],
+      [ `--env-file=${nodeOptionsEnvFilePath}`, `--env-file-if-exists=${optionalEnvFilePath}`, "--eval", code ],
       { cwd: __dirname },
     );
     assert.strictEqual(child.stderr, '');
@@ -74,7 +74,7 @@ describe('.env supports edge cases', () => {
     `.trim();
     const child = await common.spawnPromisified(
       process.execPath,
-      ["--env-file-optional=.env", "--eval", code],
+      ["--env-file-if-exists=.env", "--eval", code],
       { cwd: __dirname },
     );
     assert.strictEqual(child.stderr, '');

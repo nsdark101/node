@@ -13,11 +13,11 @@ using v8::String;
 
 std::vector<Dotenv::env_file_data> Dotenv::GetEnvFileDataFromArgs(
     const std::vector<std::string>& args) {
-  const std::string_view optional_env_file_flag = "--env-file-optional";
+  const std::string_view optional_env_file_flag = "--env-file-if-exists";
 
   const auto find_match = [](const std::string& arg) {
     const std::string_view env_file_flag = "--env-file";
-    const std::string_view optional_env_file_flag = "--env-file-optional";
+    const std::string_view optional_env_file_flag = "--env-file-if-exists";
     return strncmp(arg.c_str(), env_file_flag.data(), env_file_flag.size()) ==
                0 ||
            strncmp(arg.c_str(),
