@@ -832,7 +832,7 @@ static ExitCode InitializeNodeWithArgsInternal(
   HandleEnvOptions(per_process::cli_options->per_isolate->per_env);
 
   std::string node_options;
-  auto env_files = node::Dotenv::GetEnvFileDataFromArgs(*argv);
+  auto env_files = node::Dotenv::GetDataFromArgs(*argv);
 
   if (!env_files.empty()) {
     CHECK(!per_process::v8_initialized);
@@ -845,7 +845,7 @@ static ExitCode InitializeNodeWithArgsInternal(
           errors->push_back(file_data.path + ": invalid format");
           break;
         case Dotenv::ParseResult::FileError:
-          if (!file_data.is_required) continue;
+          if (file_data.is_optional) continue;
           errors->push_back(file_data.path + ": not found");
           break;
         default:

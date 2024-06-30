@@ -15,7 +15,7 @@ class Dotenv {
   enum ParseResult { Valid, FileError, InvalidContent };
   struct env_file_data {
     std::string path;
-    bool is_required;
+    bool is_optional;
   };
 
   Dotenv() = default;
@@ -31,7 +31,7 @@ class Dotenv {
   void SetEnvironment(Environment* env);
   v8::Local<v8::Object> ToObject(Environment* env) const;
 
-  static std::vector<env_file_data> GetEnvFileDataFromArgs(
+  static std::vector<env_file_data> GetDataFromArgs(
       const std::vector<std::string>& args);
 
  private:

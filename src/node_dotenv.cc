@@ -11,18 +11,14 @@ using v8::NewStringType;
 using v8::Object;
 using v8::String;
 
-std::vector<Dotenv::env_file_data> Dotenv::GetEnvFileDataFromArgs(
+std::vector<Dotenv::env_file_data> Dotenv::GetDataFromArgs(
     const std::vector<std::string>& args) {
   const std::string_view optional_env_file_flag = "--env-file-if-exists";
 
   const auto find_match = [](const std::string& arg) {
-    const std::string_view env_file_flag = "--env-file";
-    const std::string_view optional_env_file_flag = "--env-file-if-exists";
-    return strncmp(arg.c_str(), env_file_flag.data(), env_file_flag.size()) ==
-               0 ||
-           strncmp(arg.c_str(),
-                   optional_env_file_flag.data(),
-                   optional_env_file_flag.size()) == 0;
+    const std::string_view env_file_flag_prefix = "--env-file";
+
+    return arg.starts_with(env_file_flag_prefix);
   };
 
   std::vector<Dotenv::env_file_data> env_files;
@@ -35,11 +31,10 @@ std::vector<Dotenv::env_file_data> Dotenv::GetEnvFileDataFromArgs(
     if (equal_char != std::string::npos) {
       // `--env-file=path`
       auto flag = matched_arg->substr(0, equal_char);
+      auto file_path = matched_arg->substr(equal_char + 1);
       struct env_file_data env_file_data = {
-          matched_arg->substr(equal_char + 1),
-          strncmp(flag.c_str(),
-                  optional_env_file_flag.data(),
-                  optional_env_file_flag.size()) != 0
+          file_path,
+          flag.starts_with(optional_env_file_flag)
         };
       env_files.push_back(env_file_data);
     } else {
@@ -52,9 +47,7 @@ std::vector<Dotenv::env_file_data> Dotenv::GetEnvFileDataFromArgs(
 
       struct env_file_data env_file_data = {
         *file_path,
-        strncmp(matched_arg->c_str(),
-                optional_env_file_flag.data(),
-                optional_env_file_flag.size()) != 0
+        matched_arg->starts_with(optional_env_file_flag)
         };
       env_files.push_back(env_file_data);
     }
