@@ -8,18 +8,17 @@ const fixtures = require('../common/fixtures');
 
 const validEnvFilePath = '../fixtures/dotenv/valid.env';
 const nodeOptionsEnvFilePath = '../fixtures/dotenv/node-options.env';
-const optionalEnvFilePath = '../fixtures/dotenv/optional.env';
 
 describe('.env supports edge cases', () => {
   it('supports multiple declarations, including optional ones', async () => {
     const code = `
       const assert = require('assert');
-      assert.strictEqual(process.env.BASIC, 'OPTIONALLY LOADED');
+      assert.strictEqual(process.env.BASIC, 'basic');
       assert.strictEqual(process.env.NODE_NO_WARNINGS, '1');
     `.trim();
     const child = await common.spawnPromisified(
       process.execPath,
-      [ `--env-file=${nodeOptionsEnvFilePath}`, `--env-file-if-exists=${optionalEnvFilePath}`, '--eval', code ],
+      [ `--env-file=${nodeOptionsEnvFilePath}`, `--env-file-if-exists=${validEnvFilePath}`, '--eval', code ],
       { cwd: __dirname },
     );
     assert.strictEqual(child.stderr, '');
