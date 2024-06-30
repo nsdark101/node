@@ -845,7 +845,12 @@ static ExitCode InitializeNodeWithArgsInternal(
           errors->push_back(file_data.path + ": invalid format");
           break;
         case Dotenv::ParseResult::FileError:
-          if (file_data.is_optional) continue;
+          if (file_data.is_optional) {
+            fprintf(stderr,
+                    "%s not found. Continuing without it.\n",
+                    file_data.path.c_str());
+            continue;
+          }
           errors->push_back(file_data.path + ": not found");
           break;
         default:

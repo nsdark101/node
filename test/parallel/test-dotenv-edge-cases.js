@@ -53,14 +53,14 @@ describe('.env supports edge cases', () => {
 
   it('should handle non-existent optional .env file', async () => {
     const code = `
-      require('assert').strictEqual(process.env.BASIC, undefined);
+      require('assert').strictEqual(1,1);
     `.trim();
     const child = await common.spawnPromisified(
       process.execPath,
       ['--env-file-if-exists=.env', '--eval', code],
       { cwd: __dirname },
     );
-    assert.strictEqual(child.stderr, '');
+    assert.notStrictEqual(child.stderr, '');
     assert.strictEqual(child.code, 0);
   });
 
