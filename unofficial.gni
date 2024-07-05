@@ -152,6 +152,7 @@ template("node_gn_build") {
       "deps/ngtcp2",
       "deps/postject",
       "deps/simdutf",
+      "deps/sqlite",
       "deps/uvwasi",
       "//third_party/zlib",
       "$node_v8_path:v8_libplatform",
@@ -346,6 +347,7 @@ template("node_gn_build") {
     output_name = "embedtest"
     testonly = true
     deps = [ ":libnode" ]
+    include_dirs = [ "tools" ]
     sources = [
       "src/node_snapshot_stub.cc",
       "test/embedding/embedtest.cc",

@@ -19,6 +19,7 @@
     'node_shared_http_parser%': 'false',
     'node_shared_cares%': 'false',
     'node_shared_libuv%': 'false',
+    'node_shared_sqlite%': 'false',
     'node_shared_uvwasi%': 'false',
     'node_shared_nghttp2%': 'false',
     'node_use_openssl%': 'true',
@@ -146,6 +147,7 @@
       'src/node_wasi.cc',
       'src/node_wasm_web_api.cc',
       'src/node_watchdog.cc',
+      'src/node_webstorage.cc',
       'src/node_worker.cc',
       'src/node_zlib.cc',
       'src/path.cc',
@@ -153,6 +155,7 @@
       'src/permission/fs_permission.cc',
       'src/permission/inspector_permission.cc',
       'src/permission/permission.cc',
+      'src/permission/wasi_permission.cc',
       'src/permission/worker_permission.cc',
       'src/pipe_wrap.cc',
       'src/process_wrap.cc',
@@ -185,8 +188,6 @@
       'src/base_object.h',
       'src/base_object-inl.h',
       'src/base_object_types.h',
-      'src/base64.h',
-      'src/base64-inl.h',
       'src/blob_serializer_deserializer.h',
       'src/blob_serializer_deserializer-inl.h',
       'src/callback_queue.h',
@@ -271,12 +272,14 @@
       'src/node_v8_platform-inl.h',
       'src/node_wasi.h',
       'src/node_watchdog.h',
+      'src/node_webstorage.h',
       'src/node_worker.h',
       'src/path.h',
       'src/permission/child_process_permission.h',
       'src/permission/fs_permission.h',
       'src/permission/inspector_permission.h',
       'src/permission/permission.h',
+      'src/permission/wasi_permission.h',
       'src/permission/worker_permission.h',
       'src/pipe_wrap.h',
       'src/req_wrap.h',
@@ -289,7 +292,6 @@
       'src/string_bytes.h',
       'src/string_decoder.h',
       'src/string_decoder-inl.h',
-      'src/string_search.h',
       'src/tcp_wrap.h',
       'src/timers.h',
       'src/tracing/agent.h',
@@ -473,15 +475,6 @@
         '-Werror=undefined-inline',
         '-Werror=extra-semi',
       ],
-    },
-
-    # Relevant only for x86.
-    # Refs: https://github.com/nodejs/node/pull/25852
-    # Refs: https://docs.microsoft.com/en-us/cpp/build/reference/safeseh-image-has-safe-exception-handlers
-    'msvs_settings': {
-      'VCLinkerTool': {
-        'ImageHasSafeExceptionHandlers': 'false',
-      },
     },
 
     'conditions': [
@@ -845,9 +838,11 @@
       'dependencies': [
         'deps/googletest/googletest.gyp:gtest_prod',
         'deps/histogram/histogram.gyp:histogram',
+        'deps/sqlite/sqlite.gyp:sqlite',
         'deps/simdjson/simdjson.gyp:simdjson',
         'deps/simdutf/simdutf.gyp:simdutf',
         'deps/ada/ada.gyp:ada',
+        'deps/nbytes/nbytes.gyp:nbytes',
         'node_js2c#host',
       ],
 
@@ -1029,6 +1024,7 @@
       'dependencies': [
         '<(node_lib_target_name)',
         'deps/histogram/histogram.gyp:histogram',
+        'deps/sqlite/sqlite.gyp:sqlite',
       ],
 
       'includes': [
@@ -1040,6 +1036,7 @@
         'deps/v8/include',
         'deps/cares/include',
         'deps/uv/include',
+        'deps/sqlite',
         'test/cctest',
       ],
 
@@ -1072,6 +1069,7 @@
       'dependencies': [
         '<(node_lib_target_name)',
         'deps/histogram/histogram.gyp:histogram',
+        'deps/sqlite/sqlite.gyp:sqlite',
         'deps/uvwasi/uvwasi.gyp:uvwasi',
       ],
       'includes': [
@@ -1082,6 +1080,7 @@
         'tools/msvs/genfiles',
         'deps/v8/include',
         'deps/cares/include',
+        'deps/sqlite',
         'deps/uv/include',
         'deps/uvwasi/include',
         'test/cctest',
@@ -1116,8 +1115,10 @@
         '<(node_lib_target_name)',
         'deps/googletest/googletest.gyp:gtest_prod',
         'deps/histogram/histogram.gyp:histogram',
+        'deps/sqlite/sqlite.gyp:sqlite',
         'deps/uvwasi/uvwasi.gyp:uvwasi',
         'deps/ada/ada.gyp:ada',
+        'deps/nbytes/nbytes.gyp:nbytes',
       ],
       'includes': [
         'node.gypi'
@@ -1127,6 +1128,7 @@
         'tools/msvs/genfiles',
         'deps/v8/include',
         'deps/cares/include',
+        'deps/sqlite',
         'deps/uv/include',
         'deps/uvwasi/include',
         'test/cctest',
@@ -1163,9 +1165,11 @@
         'deps/googletest/googletest.gyp:gtest',
         'deps/googletest/googletest.gyp:gtest_main',
         'deps/histogram/histogram.gyp:histogram',
+        'deps/sqlite/sqlite.gyp:sqlite',
         'deps/simdjson/simdjson.gyp:simdjson',
         'deps/simdutf/simdutf.gyp:simdutf',
         'deps/ada/ada.gyp:ada',
+        'deps/nbytes/nbytes.gyp:nbytes',
       ],
 
       'includes': [
@@ -1178,6 +1182,7 @@
         'deps/v8/include',
         'deps/cares/include',
         'deps/uv/include',
+        'deps/sqlite',
         'test/cctest',
       ],
 
@@ -1239,7 +1244,9 @@
       'dependencies': [
         '<(node_lib_target_name)',
         'deps/histogram/histogram.gyp:histogram',
+        'deps/sqlite/sqlite.gyp:sqlite',
         'deps/ada/ada.gyp:ada',
+        'deps/nbytes/nbytes.gyp:nbytes',
       ],
 
       'includes': [
@@ -1253,6 +1260,7 @@
         'deps/v8/include',
         'deps/cares/include',
         'deps/uv/include',
+        'deps/sqlite',
         'test/embedding',
       ],
 
@@ -1352,7 +1360,9 @@
       'dependencies': [
         '<(node_lib_target_name)',
         'deps/histogram/histogram.gyp:histogram',
+        'deps/sqlite/sqlite.gyp:sqlite',
         'deps/ada/ada.gyp:ada',
+        'deps/nbytes/nbytes.gyp:nbytes',
         'deps/simdjson/simdjson.gyp:simdjson',
         'deps/simdutf/simdutf.gyp:simdutf',
       ],
@@ -1367,6 +1377,7 @@
         'deps/v8/include',
         'deps/cares/include',
         'deps/uv/include',
+        'deps/sqlite',
       ],
 
       'defines': [ 'NODE_WANT_INTERNALS=1' ],
