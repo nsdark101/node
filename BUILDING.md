@@ -224,7 +224,7 @@ Consult previous versions of this document for older versions of Node.js:
 
 ### Prerequisites
 
-* Python support: the Node.js project supports Python >= 3 for building and testing.
+* Python support: the Node.js project supports Python >= 3.6 for building and testing.
 * Memory: at least 8GB of RAM is typically required when compiling with 4 parallel jobs (e.g: `make -j4`)
 
 ### Unix and macOS
