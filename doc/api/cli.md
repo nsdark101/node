@@ -1110,6 +1110,20 @@ generated as part of the test runner output. If no tests are run, a coverage
 report is not generated. See the documentation on
 [collecting code coverage from tests][] for more details.
 
+### `--experimental-test-isolation=mode`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+> Stability: 1.0 - Early development
+
+Configures the type of test isolation used in the test runner. When `mode` is
+`'process'`, each test file is run in a separate child process. When `mode` is
+`'none'`, all test files run in the same process as the test runner. The default
+isolation mode is `'process'`. This flag is ignored if the `--test` flag is not
+present.
+
 ### `--experimental-test-module-mocks`
 
 <!-- YAML
@@ -2196,7 +2210,9 @@ added:
 -->
 
 The maximum number of test files that the test runner CLI will execute
-concurrently. The default value is `os.availableParallelism() - 1`.
+concurrently. The default concurrency depends on the test isolation mode in use.
+If `--experimental-test-isolation` is set to `'none'`, concurrency defaults to
+one. Otherwise, the default value is `os.availableParallelism() - 1`.
 
 ### `--test-force-exit`
 
