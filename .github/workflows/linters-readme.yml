@@ -32,12 +32,14 @@ jobs:
           get_list_members() {
             TEAM="$1"
             QUOTE='"'
-            gh api "/orgs/$GITHUB_REPOSITORY_OWNER/teams/$TEAM/members" -X GET -f per_page=100 --jq "map(.login) | ${QUOTE}${TEAM}=\(tojson)${QUOTE}"
+            gh api "/orgs/nodejs/teams/$TEAM/members" -X GET -f per_page=100 --jq "map(.login) | ${QUOTE}${TEAM}=\(tojson)${QUOTE}"
           }
 
-          get_list_members "collaborators" >> "$GITHUB_OUTPUT"
-          get_list_members "issue-triage" >> "$GITHUB_OUTPUT"
-          get_list_members "tsc" >> "$GITHUB_OUTPUT"
+          [ -z "$GITHUB_TOKEN" ] || (
+            get_list_members "collaborators"
+            get_list_members "issue-triage"
+            get_list_members "tsc"
+          ) >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ secrets.GH_USER_TOKEN }}
       - name: Get modified README

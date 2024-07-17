@@ -67,7 +67,7 @@ console.info('Lists are in the alphabetical order.');
 
 assert.deepStrictEqual(tscMembers, new Set(), 'Some TSC members are not listed as Collaborators');
 
-if (argv[2]) {
+if (argv[2] && argv[2] !== '{}') {
   const reviver = (_, value) =>
     (typeof value === 'string' && value[0] === '[' && value.at(-1) === ']' ?
       new Set(JSON.parse(value)) :
