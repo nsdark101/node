@@ -4,7 +4,7 @@
 
 import assert from 'node:assert';
 import { open } from 'node:fs/promises';
-import { argv } from 'node:process'
+import { argv } from 'node:process';
 
 const lists = {
   __proto__: null,
@@ -18,7 +18,7 @@ const lists = {
 const actualMembers = {
   __proto__: null,
   // The bot is part of `@nodejs/collaborators`, but is not listed in the README.
-  'collaborators': new Set().add('nodejs-github-bot'),
+  collaborators: new Set().add('nodejs-github-bot'),
 };
 const tscMembers = new Set();
 
@@ -39,11 +39,19 @@ for await (const line of readme.readLines()) {
   } else if (currentList in lists && line.startsWith('* [')) {
     const currentGithubHandle = line.slice(3, line.indexOf(']'));
     const currentGithubHandleLowerCase = currentGithubHandle.toLowerCase();
-    if (previousGithubHandle && previousGithubHandle >= currentGithubHandleLowerCase) {
-      throw new Error(`${currentGithubHandle} should be listed before ${previousGithubHandle} in the ${currentList} list (README.md:${lineNumber})`);
+    if (
+      previousGithubHandle &&
+      previousGithubHandle >= currentGithubHandleLowerCase
+    ) {
+      throw new Error(
+        `${currentGithubHandle} should be listed before ${previousGithubHandle} in the ${currentList} list (README.md:${lineNumber})`,
+      );
     }
 
-    if (currentList === 'TSC voting members' || currentList === 'TSC regular members') {
+    if (
+      currentList === 'TSC voting members' ||
+      currentList === 'TSC regular members'
+    ) {
       tscMembers.add(currentGithubHandle);
     } else if (currentList === 'Collaborators') {
       tscMembers.delete(currentGithubHandle);
@@ -57,5 +65,8 @@ for await (const line of readme.readLines()) {
 
 assert.deepStrictEqual(tscMembers, new Set, `Some TSC members are not listed as Collaborators`);
 
-const reviver = (_, value) => typeof value === 'string' && value[0] === '[' && value.at(-1) === ']' ? new Set(JSON.parse(value)) : value;
-assert.deepStrictEqual({...actualMembers}, JSON.parse(argv[2], reviver))
+const reviver = (_, value) =>
+  typeof value === 'string' && value[0] === '[' && value.at(-1) === ']'
+    ? new Set(JSON.parse(value))
+    : value;
+assert.deepStrictEqual({ ...actualMembers }, JSON.parse(argv[2], reviver));
