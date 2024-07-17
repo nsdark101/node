@@ -1818,13 +1818,32 @@ static void ContainsModuleSyntax(const FunctionCallbackInfo<Value>& args) {
 
   CHECK_GE(args.Length(), 2);
 
-  // Argument 1: source code
-  CHECK(args[0]->IsString());
-  Local<String> code = args[0].As<String>();
-
   // Argument 2: filename
   CHECK(args[1]->IsString());
   Local<String> filename = args[1].As<String>();
+
+  // Argument 1: source code; if undefined, read from filename in argument 2
+  Local<String> code;
+  if (args[0]->IsUndefined()) {
+    CHECK(!filename.IsEmpty());
+    Utf8Value utf8Value(isolate, filename);
+    const char* filename_str = utf8Value.out();
+    std::string contents;
+    int result = ReadFileSync(&contents, filename_str);
+    if (result != 0) {
+      // error reading file and no source available => undefined
+      args.GetReturnValue().SetUndefined();
+      return;
+    }
+    code = String::NewFromUtf8(isolate,
+                               contents.c_str(),
+                               v8::NewStringType::kNormal,
+                               contents.length())
+               .ToLocalChecked();
+  } else {
+    CHECK(args[0]->IsString());
+    code = args[0].As<String>();
+  }
 
   // Argument 3: resource name (URL for ES module).
   Local<String> resource_name = filename;
@@ -1842,6 +1861,7 @@ static void ContainsModuleSyntax(const FunctionCallbackInfo<Value>& args) {
     Local<Function> fn;
     TryCatchScope try_catch(env);
     ShouldNotAbortOnUncaughtScope no_abort_scope(env);
+
     if (CompileFunctionForCJSLoader(
             env, context, code, filename, &cache_rejected, cjs_var, nullptr)
             .ToLocal(&fn)) {
@@ -1853,7 +1873,13 @@ static void ContainsModuleSyntax(const FunctionCallbackInfo<Value>& args) {
   }
 
   bool result = ShouldRetryAsESM(realm, message, code, resource_name);
-  args.GetReturnValue().Set(result);
+  if (result) {
+    // successfully parsed as ESM after failing to parse as CJS => ESM syntax
+    args.GetReturnValue().Set(result);
+    return;
+  }
+
+  args.GetReturnValue().SetUndefined();
 }
 
 static void StartSigintWatchdog(const FunctionCallbackInfo<Value>& args) {
