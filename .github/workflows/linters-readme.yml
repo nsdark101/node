@@ -3,7 +3,7 @@
 name: Linters (README.md)
 
 on:
-  # We need `pull_request_target` to access the secrets
+  # We need `pull_request_target`, because forks won't have access to team members.
   pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
     paths: [README.md]
@@ -14,10 +14,6 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
   cancel-in-progress: true
-
-env:
-  PYTHON_VERSION: '3.12'
-  NODE_VERSION: lts/*
 
 permissions:
   contents: read

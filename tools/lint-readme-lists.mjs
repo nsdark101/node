@@ -63,11 +63,16 @@ for await (const line of readme.readLines()) {
     previousGithubHandle = currentGithubHandleLowerCase;
   }
 }
+console.info('Lists are in the alphabetical order.');
 
 assert.deepStrictEqual(tscMembers, new Set(), 'Some TSC members are not listed as Collaborators');
 
-const reviver = (_, value) =>
-  (typeof value === 'string' && value[0] === '[' && value.at(-1) === ']' ?
-    new Set(JSON.parse(value)) :
-    value);
-assert.deepStrictEqual({ ...actualMembers }, JSON.parse(argv[2], reviver));
+if (argv[2]) {
+  const reviver = (_, value) =>
+    (typeof value === 'string' && value[0] === '[' && value.at(-1) === ']' ?
+      new Set(JSON.parse(value)) :
+      value);
+  assert.deepStrictEqual(JSON.parse(argv[2], reviver), { ...actualMembers });
+} else {
+  console.warn('Skipping the check of GitHub teams membership.');
+}
