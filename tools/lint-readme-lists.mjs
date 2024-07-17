@@ -1,19 +1,20 @@
 #!/usr/bin/env node
 
-// Validates the list in the README are in the correct order.
+// Validates the list in the README are in the correct order, and consistent with the actual GitHub teams.
 
 import assert from 'node:assert';
 import { open } from 'node:fs/promises';
 import { argv } from 'node:process';
 
 const lists = {
-  __proto__: null,
+  '__proto__': null,
+
   'TSC voting members': 'tsc',
   'TSC regular members': null,
   'TSC emeriti members': null,
   'Collaborators': 'collaborators',
   'Collaborator emeriti': null,
-  'Triagers': 'issue-triage'
+  'Triagers': 'issue-triage',
 };
 const actualMembers = {
   __proto__: null,
@@ -57,16 +58,16 @@ for await (const line of readme.readLines()) {
       tscMembers.delete(currentGithubHandle);
     }
     if (lists[currentList]) {
-      (actualMembers[lists[currentList]] ??= new Set).add(currentGithubHandle);
+      (actualMembers[lists[currentList]] ??= new Set()).add(currentGithubHandle);
     }
     previousGithubHandle = currentGithubHandleLowerCase;
   }
 }
 
-assert.deepStrictEqual(tscMembers, new Set, `Some TSC members are not listed as Collaborators`);
+assert.deepStrictEqual(tscMembers, new Set(), 'Some TSC members are not listed as Collaborators');
 
 const reviver = (_, value) =>
-  typeof value === 'string' && value[0] === '[' && value.at(-1) === ']'
-    ? new Set(JSON.parse(value))
-    : value;
+  (typeof value === 'string' && value[0] === '[' && value.at(-1) === ']' ?
+    new Set(JSON.parse(value)) :
+    value);
 assert.deepStrictEqual({ ...actualMembers }, JSON.parse(argv[2], reviver));
