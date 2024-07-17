@@ -10,8 +10,6 @@ on:
   push:
     branches:
       - main
-      - v[0-9]+.x-staging
-      - v[0-9]+.x
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
@@ -38,7 +36,7 @@ jobs:
           get_list_members() {
             TEAM="$1"
             QUOTE='"'
-            gh api "/orgs/nodejs/teams/$TEAM/members" -X GET -f per_page=100 --jq "map(.login) | ${QUOTE}${TEAM}=\(tojson)${QUOTE}"
+            gh api "/orgs/$GITHUB_REPOSITORY_OWNER/teams/$TEAM/members" -X GET -f per_page=100 --jq "map(.login) | ${QUOTE}${TEAM}=\(tojson)${QUOTE}"
           }
 
           get_list_members "collaborators" >> "$GITHUB_OUTPUT"
@@ -48,7 +46,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GH_USER_TOKEN }}
       - name: Get modified README
         if: github.event_name != 'push'
-        run: curl -fsSLo README.md "https://raw.githubusercontent.com/nodejs/node/$GITHUB_SHA/README.md"
+        run: curl "https://patch-diff.githubusercontent.com/raw/$GITHUB_REPOSITORY/pull/${PULL_ID}.diff" | git apply --include=README.md
+        env:
+          PULL_ID: ${{ github.event.pull_request.number }}
       - run: tools/lint-readme-lists.mjs "$TEAMS"
         env:
           TEAMS: ${{ tojson(steps.team_members.outputs) }}
