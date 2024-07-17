@@ -1,0 +1,49 @@
+# We need a separate workflow file so failures on the README are not reported on
+# all PRs, only on the ones that update the README.
+name: Linters (README.md)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths: [README.md]
+  push:
+    branches:
+      - main
+      - v[0-9]+.x-staging
+      - v[0-9]+.x
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: lts/*
+
+permissions:
+  contents: read
+
+jobs:
+  lint-readme-lists:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+        with:
+          persist-credentials: false
+      - name: Get ${{ env.TEAM }} team members
+        id: team_members
+        run: |
+          get_list_members() {
+            TEAM="$1"
+            QUOTE='"'
+            gh api "/orgs/nodejs/teams/$TEAM/members" -X GET -f per_page=100 --jq "map(.login) | @sh ${QUOTE}${TEAM}=\(tojson)${QUOTE}"
+          }
+          
+          get_list_members "collaborators" >> "$GITHUB_OUTPUT"
+          get_list_members "issue-triage" >> "$GITHUB_OUTPUT"
+          get_list_members "tsc" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: tools/lint-readme-lists.mjs "$TEAMS"
+        env:
+          TEAMS: ${{ tojson(steps.team_members.outputs) }}

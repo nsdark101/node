@@ -2,16 +2,24 @@
 
 // Validates the list in the README are in the correct order.
 
+import assert from 'node:assert';
 import { open } from 'node:fs/promises';
+import { argv } from 'node:process'
 
-const lists = [
-  'TSC voting members',
-  'TSC regular members',
-  'TSC emeriti members',
-  'Collaborators',
-  'Collaborator emeriti',
-  'Triagers',
-];
+const lists = {
+  __proto__: null,
+  'TSC voting members': 'tsc',
+  'TSC regular members': null,
+  'TSC emeriti members': null,
+  'Collaborators': 'collaborators',
+  'Collaborator emeriti': null,
+  'Triagers': 'issue-triage'
+};
+const actualMembers = {
+  __proto__: null,
+  // The bot is part of `@nodejs/collaborators`, but is not listed in the README.
+  'collaborators': new Set().add('nodejs-github-bot'),
+};
 const tscMembers = new Set();
 
 const readme = await open(new URL('../README.md', import.meta.url), 'r');
@@ -23,14 +31,15 @@ let lineNumber = 0;
 for await (const line of readme.readLines()) {
   lineNumber++;
   if (line.startsWith('### ')) {
-    currentList = lists[lists.indexOf(line.slice(4))];
+    currentList = line.slice(4);
     previousGithubHandle = null;
   } else if (line.startsWith('#### ')) {
-    currentList = lists[lists.indexOf(line.slice(5))];
+    currentList = line.slice(5);
     previousGithubHandle = null;
-  } else if (currentList && line.startsWith('* [')) {
-    const currentGithubHandle = line.slice(3, line.indexOf(']')).toLowerCase();
-    if (previousGithubHandle && previousGithubHandle >= currentGithubHandle) {
+  } else if (currentList in lists && line.startsWith('* [')) {
+    const currentGithubHandle = line.slice(3, line.indexOf(']'));
+    const currentGithubHandleLowerCase = currentGithubHandle.toLowerCase();
+    if (previousGithubHandle && previousGithubHandle >= currentGithubHandleLowerCase) {
       throw new Error(`${currentGithubHandle} should be listed before ${previousGithubHandle} in the ${currentList} list (README.md:${lineNumber})`);
     }
 
@@ -39,10 +48,14 @@ for await (const line of readme.readLines()) {
     } else if (currentList === 'Collaborators') {
       tscMembers.delete(currentGithubHandle);
     }
-    previousGithubHandle = currentGithubHandle;
+    if (lists[currentList]) {
+      (actualMembers[lists[currentList]] ??= new Set).add(currentGithubHandle);
+    }
+    previousGithubHandle = currentGithubHandleLowerCase;
   }
 }
 
-if (tscMembers.size !== 0) {
-  throw new Error(`Some TSC members are not listed as Collaborators: ${Array.from(tscMembers)}`);
-}
+assert.deepStrictEqual(tscMembers, new Set, `Some TSC members are not listed as Collaborators`);
+
+const reviver = (_, value) => typeof value === 'string' && value[0] === '[' && value.at(-1) === ']' ? new Set(JSON.parse(value)) : value;
+assert.deepStrictEqual({...actualMembers}, JSON.parse(argv[2], reviver))
