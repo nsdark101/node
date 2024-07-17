@@ -179,10 +179,3 @@ jobs:
           persist-credentials: false
       # GH Actions squashes all PR commits, HEAD^ refers to the base branch.
       - run: git diff HEAD^ HEAD -G"pr-url:" -- "*.md" | ./tools/lint-pr-url.mjs ${{ github.event.pull_request.html_url }}
-  lint-readme:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
-        with:
-          persist-credentials: false
-      - run: tools/lint-readme-lists.mjs

@@ -3,7 +3,8 @@
 name: Linters (README.md)
 
 on:
-  pull_request:
+  # We need `pull_request_target` to access the secrets
+  pull_request_target:
     types: [opened, synchronize, reopened, ready_for_review]
     paths: [README.md]
   push:
@@ -30,20 +31,24 @@ jobs:
       - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
         with:
           persist-credentials: false
-      - name: Get ${{ env.TEAM }} team members
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Get team members
         id: team_members
         run: |
           get_list_members() {
             TEAM="$1"
             QUOTE='"'
-            gh api "/orgs/nodejs/teams/$TEAM/members" -X GET -f per_page=100 --jq "map(.login) | @sh ${QUOTE}${TEAM}=\(tojson)${QUOTE}"
+            gh api "/orgs/nodejs/teams/$TEAM/members" -X GET -f per_page=100 --jq "map(.login) | ${QUOTE}${TEAM}=\(tojson)${QUOTE}"
           }
-          
+
           get_list_members "collaborators" >> "$GITHUB_OUTPUT"
           get_list_members "issue-triage" >> "$GITHUB_OUTPUT"
           get_list_members "tsc" >> "$GITHUB_OUTPUT"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_USER_TOKEN }}
+      - name: Get modified README
+        if: github.event_name != 'push'
+        run: curl -fsSLo README.md "https://raw.githubusercontent.com/nodejs/node/$GITHUB_SHA/README.md"
       - run: tools/lint-readme-lists.mjs "$TEAMS"
         env:
           TEAMS: ${{ tojson(steps.team_members.outputs) }}
