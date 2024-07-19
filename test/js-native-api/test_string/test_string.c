@@ -311,10 +311,8 @@ static napi_value TestPropertyKeyUtf16AutoLength(napi_env env,
 }
 
 static napi_value TestPropertyKeyUtf8(napi_env env, napi_callback_info info) {
-  return TestOneByteImpl(env,
-                         info,
-                         napi_get_value_string_utf8,
-                         node_api_create_property_key_utf8);
+  return TestOneByteImpl(
+      env, info, napi_get_value_string_utf8, node_api_create_property_key_utf8);
 }
 
 static napi_value Utf16Length(napi_env env, napi_callback_info info) {
