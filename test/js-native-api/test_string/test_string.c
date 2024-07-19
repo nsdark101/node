@@ -76,8 +76,7 @@ static napi_value TestTwoByteImpl(napi_env env,
   size_t buffer_size = 128;
   size_t copied;
 
-  NODE_API_CALL(
-      env, get_api(env, args[0], buffer, buffer_size, &copied));
+  NODE_API_CALL(env, get_api(env, args[0], buffer, buffer_size, &copied));
 
   napi_value output;
   if (length_mode == auto_length) {
@@ -319,7 +318,8 @@ static napi_value TestPropertyKeyUtf8(napi_env env, napi_callback_info info) {
                          actual_length);
 }
 
-static napi_value TestPropertyKeyUtf8AutoLength(napi_env env, napi_callback_info info) {
+static napi_value TestPropertyKeyUtf8AutoLength(napi_env env,
+                                                napi_callback_info info) {
   return TestOneByteImpl(env,
                          info,
                          napi_get_value_string_utf8,
@@ -335,7 +335,8 @@ static napi_value TestPropertyKeyLatin1(napi_env env, napi_callback_info info) {
                          actual_length);
 }
 
-static napi_value TestPropertyKeyLatin1AutoLength(napi_env env, napi_callback_info info) {
+static napi_value TestPropertyKeyLatin1AutoLength(napi_env env,
+                                                  napi_callback_info info) {
   return TestOneByteImpl(env,
                          info,
                          napi_get_value_string_latin1,
