@@ -311,36 +311,10 @@ static napi_value TestPropertyKeyUtf16AutoLength(napi_env env,
 }
 
 static napi_value TestPropertyKeyUtf8(napi_env env, napi_callback_info info) {
-  size_t argc = 1;
-  napi_value args[1];
-  napi_value result;
-
-  napi_status status =
-      napi_get_cb_info(env, info, &argc, args, nullptr, nullptr);
-  if (status != napi_ok) return nullptr;
-
-  if (argc != 1) return nullptr;
-
-  size_t length;
-  status = napi_get_value_string_utf8(env, args[0], nullptr, 0, &length);
-  if (status != napi_ok) return nullptr;
-
-  char* utf8name = (char*)malloc(length + 1);
-  if (utf8name == nullptr) return nullptr;
-
-  status =
-      napi_get_value_string_utf8(env, args[0], utf8name, length + 1, &length);
-  if (status != napi_ok) {
-    free(utf8name);
-    return nullptr;
-  }
-
-  status = node_api_create_property_key_utf8(env, utf8name, length, &result);
-  free(utf8name);
-
-  if (status != napi_ok) return nullptr;
-
-  return result;
+  return TestOneByteImpl(env,
+                         info,
+                         napi_get_value_string_utf8,
+                         node_api_create_property_key_utf8);
 }
 
 static napi_value Utf16Length(napi_env env, napi_callback_info info) {
