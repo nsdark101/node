@@ -76,7 +76,8 @@ static napi_value TestTwoByteImpl(napi_env env,
   size_t buffer_size = 128;
   size_t copied;
 
-  NODE_API_CALL(env, get_api(env, args[0], buffer, buffer_size, &copied));
+  NODE_API_CALL(
+      env, get_api(env, args[0], buffer, buffer_size, &copied));
 
   napi_value output;
   if (length_mode == auto_length) {
@@ -311,8 +312,35 @@ static napi_value TestPropertyKeyUtf16AutoLength(napi_env env,
 }
 
 static napi_value TestPropertyKeyUtf8(napi_env env, napi_callback_info info) {
-  return TestOneByteImpl(
-      env, info, napi_get_value_string_utf8, node_api_create_property_key_utf8);
+  return TestOneByteImpl(env,
+                         info,
+                         napi_get_value_string_utf8,
+                         node_api_create_property_key_utf8,
+                         actual_length);
+}
+
+static napi_value TestPropertyKeyUtf8AutoLength(napi_env env, napi_callback_info info) {
+  return TestOneByteImpl(env,
+                         info,
+                         napi_get_value_string_utf8,
+                         node_api_create_property_key_utf8,
+                         auto_length);
+}
+
+static napi_value TestPropertyKeyLatin1(napi_env env, napi_callback_info info) {
+  return TestOneByteImpl(env,
+                         info,
+                         napi_get_value_string_latin1,
+                         node_api_create_property_key_latin1,
+                         actual_length);
+}
+
+static napi_value TestPropertyKeyLatin1AutoLength(napi_env env, napi_callback_info info) {
+  return TestOneByteImpl(env,
+                         info,
+                         napi_get_value_string_latin1,
+                         node_api_create_property_key_latin1,
+                         auto_length);
 }
 
 static napi_value Utf16Length(napi_env env, napi_callback_info info) {
@@ -435,6 +463,11 @@ napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NODE_API_PROPERTY("TestPropertyKeyUtf16AutoLength",
                                 TestPropertyKeyUtf16AutoLength),
       DECLARE_NODE_API_PROPERTY("TestPropertyKeyUtf8", TestPropertyKeyUtf8),
+      DECLARE_NODE_API_PROPERTY("TestPropertyKeyUtf8AutoLength",
+                                TestPropertyKeyUtf8AutoLength),
+      DECLARE_NODE_API_PROPERTY("TestPropertyKeyLatin1", TestPropertyKeyLatin1),
+      DECLARE_NODE_API_PROPERTY("TestPropertyKeyLatin1AutoLength",
+                                TestPropertyKeyLatin1AutoLength),
   };
 
   init_test_null(env, exports);
