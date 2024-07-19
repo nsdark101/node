@@ -1726,18 +1726,13 @@ napi_status node_api_create_property_key_utf8(napi_env env,
     return napi_invalid_arg;
   }
 
-  napi_status status = v8impl::NewString(
+  return v8impl::NewString(
       env, utf8name, length, result, [&](v8::Isolate* isolate) {
         return v8::String::NewFromUtf8(isolate,
                                        utf8name,
                                        v8::NewStringType::kInternalized,
                                        static_cast<int>(length));
       });
-  if (status != napi_ok) {
-    return status;
-  }
-
-  return napi_ok;
 }
 
 napi_status node_api_create_property_key_latin1(napi_env env,
