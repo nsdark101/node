@@ -1,33 +1,19 @@
 'use strict';
 const common = require('../../common.js');
-const {
-  createStringLatin1,
-  createStringUtf8,
-  createStringUtf16,
-} = require('./build/Release/napi_property_benchmark.node');
+
+let binding;
+try {
+  binding = require(`./build/Release/napi_property_benchmark.node`);
+} catch {
+  console.error(`${__filename}: Binding failed to load`);
+  process.exit(0);
+}
+
 const bench = common.createBenchmark(main, {
-  n: [1e6], // Number of iterations
+  n: [1e5, 1e6, 1e7],
+  stringType: ['Latin1', 'Utf8', 'Utf16'],
 });
 
-function main({ n }) {
-  bench.start();
-  createStringLatin1(
-    n,
-    () => {},
-    () => {},
-    () => {},
-  );
-  createStringUtf8(
-    n,
-    () => {},
-    () => {},
-    () => {},
-  );
-  createStringUtf16(
-    n,
-    () => {},
-    () => {},
-    () => {},
-  );
-  bench.end(n);
+function main({ n, stringType }) {
+  binding[`createString${stringType}`](n, bench, bench.start, bench.end);
 }
