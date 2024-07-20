@@ -3,7 +3,7 @@ const common = require('../../common.js');
 
 let binding;
 try {
-  binding = require(`./build/Release/napi_property_benchmark.node`);
+  binding = require('./build/Release/napi_property_benchmark.node');
 } catch {
   console.error(`${__filename}: Binding failed to load`);
   process.exit(0);
