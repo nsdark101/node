@@ -1239,6 +1239,9 @@ added:
   - v18.9.0
   - v16.19.0
 changes:
+  - version: REPLACEME
+    pr-url: https://github.com/nodejs/node/pull/53927
+    description: Added the `isolation` option.
   - version:
     - v22.0.0
     - v20.14.0
@@ -1268,8 +1271,13 @@ changes:
   * `inspectPort` {number|Function} Sets inspector port of test child process.
     This can be a number, or a function that takes no arguments and returns a
     number. If a nullish value is provided, each process gets its own port,
-    incremented from the primary's `process.debugPort`.
-    **Default:** `undefined`.
+    incremented from the primary's `process.debugPort`. This option is ignored
+    if the `isolation` option is set to `'none'` as no child processes are
+    spawned. **Default:** `undefined`.
+  * `isolation` {string} Configures the type of test isolation. If set to
+    `'process'`, each test file is run in a separate child process. If set to
+    `'none'`, all test files run in the current process. The default isolation
+    mode is `'process'`.
   * `only`: {boolean} If truthy, the test context will only run tests that
     have the `only` option set
   * `setup` {Function} A function that accepts the `TestsStream` instance
