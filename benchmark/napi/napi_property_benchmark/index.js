@@ -3,10 +3,10 @@ const common = require('../../common.js');
 
 let binding;
 try {
-  binding = require('./build/Release/napi_property_benchmark.node');
+  binding = require(`./build/${common.buildType}/napi_property_benchmark.node`);
 } catch {
   console.error(`${__filename}: Binding failed to load`);
-  process.exit(0);
+  process.exit(1);
 }
 
 const bench = common.createBenchmark(main, {
@@ -15,5 +15,10 @@ const bench = common.createBenchmark(main, {
 });
 
 function main({ n, stringType }) {
-  binding[`createString${stringType}`](n, bench, bench.start, bench.end);
+  const createStringFunc = binding[`createString${stringType}`];
+  if (typeof createStringFunc !== 'function') {
+    console.error(`Function createString${stringType} is not defined.`);
+    process.exit(1);
+  }
+  createStringFunc(n, bench, bench.start, bench.end);
 }
