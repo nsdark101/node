@@ -1193,7 +1193,6 @@ $(TARBALL): release-only doc-only
 	$(RM) -r $(TARNAME)/tools/eslint
 	$(RM) -r $(TARNAME)/tools/eslint-rules
 	$(RM) -r $(TARNAME)/tools/license-builder.sh
-	$(RM) -r $(TARNAME)/tools/eslint/node_modules
 	$(RM) -r $(TARNAME)/tools/osx-*
 	$(RM) -r $(TARNAME)/tools/osx-pkg.pmdoc
 	find $(TARNAME)/deps/v8/test/* -type d ! -regex '.*/test/torque$$' | xargs $(RM) -r
@@ -1384,15 +1383,23 @@ run-lint-js = tools/eslint/node_modules/eslint/bin/eslint.js --cache \
 run-lint-js-fix = $(run-lint-js) --fix
 
 .PHONY: lint-js-fix
-lint-js-fix:
-	@$(call available-node,$(run-lint-js-fix))
-
 .PHONY: lint-js
 .PHONY: lint-js-doc
+.PHONY: lint-js-build
+
+tools/.jslintstamp:
+	cd tools/eslint && $(call available-node,$(run-npm-ci))
+	touch $@
+
+lint-js-build: tools/.jslintstamp
+
+lint-js-fix: tools/.jslintstamp
+	@$(call available-node,$(run-lint-js-fix))
+
 # Note that on the CI `lint-js-ci` is run instead.
 # Lints the JavaScript code with eslint.
 lint-js-doc: LINT_JS_TARGETS=doc
-lint-js lint-js-doc:
+lint-js lint-js-doc: tools/.jslintstamp
 	@if [ "$(shell $(node_use_openssl))" != "true" ]; then \
 		echo "Skipping $@ (no crypto)"; \
 	else \
@@ -1409,7 +1416,7 @@ run-lint-js-ci = tools/eslint/node_modules/eslint/bin/eslint.js \
 
 .PHONY: lint-js-ci
 # On the CI the output is emitted in the TAP format.
-lint-js-ci:
+lint-js-ci: lint-js-build
 	$(info Running JS linter...)
 	@$(call available-node,$(run-lint-js-ci))
 
@@ -1563,7 +1570,7 @@ lint-yaml:
 
 .PHONY: lint
 .PHONY: lint-ci
-ifneq ("","$(wildcard tools/eslint/node_modules/eslint/)")
+ifneq ("","$(wildcard tools/eslint/)")
 lint: ## Run JS, C++, MD and doc linters.
 	@EXIT_STATUS=0 ; \
 	$(MAKE) lint-js || EXIT_STATUS=$$? ; \
@@ -1594,6 +1601,7 @@ endif
 lint-clean:
 	$(RM) tools/.*lintstamp
 	$(RM) .eslintcache
+	$(RM) tools/eslint/node_modules
 
 HAS_DOCKER ?= $(shell command -v docker > /dev/null 2>&1; [ $$? -eq 0 ] && echo 1 || echo 0)
 
