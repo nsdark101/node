@@ -1,0 +1,52 @@
+# We need a separate workflow file so failures on the README are not reported on
+# all PRs, only on the ones that update the README.
+name: Linters (README.md)
+
+on:
+  # We need `pull_request_target`, because forks won't have access to team members.
+  pull_request_target:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths: [README.md]
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint-readme-lists:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332  # v4.1.7
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.repository.default_branch }}
+      - name: Get team members
+        id: team_members
+        run: |
+          get_list_members() {
+            TEAM="$1"
+            QUOTE='"'
+            gh api "/orgs/nodejs/teams/$TEAM/members" -X GET -f per_page=100 --jq "map(.login) | ${QUOTE}${TEAM}=\(tojson)${QUOTE}"
+          }
+
+          [ -z "$GITHUB_TOKEN" ] || (
+            get_list_members "collaborators"
+            get_list_members "issue-triage"
+            get_list_members "tsc"
+          ) >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_USER_TOKEN }}
+      - name: Get modified README
+        if: github.event_name != 'push'
+        run: curl "https://patch-diff.githubusercontent.com/raw/$GITHUB_REPOSITORY/pull/${PULL_ID}.diff" | git apply --include=README.md
+        env:
+          PULL_ID: ${{ github.event.pull_request.number }}
+      - run: tools/lint-readme-lists.mjs "$TEAMS"
+        env:
+          TEAMS: ${{ tojson(steps.team_members.outputs) }}
