@@ -6,6 +6,9 @@ import { dot, spec, tap } from 'node:test/reporters';
 import assert from 'node:assert';
 
 const testFixtures = fixtures.path('test-runner');
+const skipIfNoInspector = {
+  skip: !process.features.inspector ? 'inspector disabled' : false
+};
 
 describe('require(\'node:test\').run', { concurrency: true }, () => {
   it('should run with no tests', async () => {
@@ -483,6 +486,92 @@ describe('require(\'node:test\').run', { concurrency: true }, () => {
       });
       stream.on('test:fail', common.mustNotCall());
       stream.on('test:pass', common.mustCall());
+      // eslint-disable-next-line no-unused-vars
+      for await (const _ of stream);
+    });
+  });
+
+  describe('coverage', () => {
+    describe('validation', () => {
+
+      it('should only allow boolean in options.coverage', async () => {
+        [Symbol(), {}, () => {}, 0, 1, 0n, 1n, '', '1', Promise.resolve(true), []]
+          .forEach((coverage) => assert.throws(() => run({ coverage }), {
+            code: 'ERR_INVALID_ARG_TYPE'
+          }));
+      });
+
+      it('should only allow coverageExcludeGlobs and coverageIncludeGlobs when coverage is true', async () => {
+        assert.throws(
+          () => run({ coverage: false, coverageIncludeGlobs: [] }),
+          { code: 'ERR_INVALID_ARG_VALUE' },
+        );
+        assert.throws(
+          () => run({ coverage: false, coverageExcludeGlobs: [] }),
+          { code: 'ERR_INVALID_ARG_VALUE' },
+        );
+      });
+
+      it('should only allow string|string[] in options.coverageExcludeGlobs', async () => {
+        [Symbol(), {}, () => {}, 0, 1, 0n, 1n, Promise.resolve([]), true, false]
+          .forEach((coverageExcludeGlobs) => {
+            assert.throws(() => run({ coverage: true, coverageExcludeGlobs }), {
+              code: 'ERR_INVALID_ARG_TYPE'
+            });
+            assert.throws(() => run({ coverage: true, coverageExcludeGlobs: [coverageExcludeGlobs] }), {
+              code: 'ERR_INVALID_ARG_TYPE'
+            });
+          });
+        run({ files: [], signal: AbortSignal.abort(), coverage: true, coverageExcludeGlobs: [''] });
+        run({ files: [], signal: AbortSignal.abort(), coverage: true, coverageExcludeGlobs: '' });
+      });
+
+      it('should only allow string|string[] in options.coverageIncludeGlobs', async () => {
+        [Symbol(), {}, () => {}, 0, 1, 0n, 1n, Promise.resolve([]), true, false]
+          .forEach((coverageIncludeGlobs) => {
+            assert.throws(() => run({ coverage: true, coverageIncludeGlobs }), {
+              code: 'ERR_INVALID_ARG_TYPE'
+            });
+            assert.throws(() => run({ coverage: true, coverageIncludeGlobs: [coverageIncludeGlobs] }), {
+              code: 'ERR_INVALID_ARG_TYPE'
+            });
+          });
+
+        run({ files: [], signal: AbortSignal.abort(), coverage: true, coverageIncludeGlobs: [''] });
+        run({ files: [], signal: AbortSignal.abort(), coverage: true, coverageIncludeGlobs: '' });
+      });
+    });
+
+    const files = [fixtures.path('test-runner', 'coverage.js')];
+    it('should run with coverage', skipIfNoInspector, async () => {
+      const stream = run({ files, coverage: true });
+      stream.on('test:fail', common.mustNotCall());
+      stream.on('test:pass', common.mustCall(1));
+      stream.on('test:coverage', common.mustCall());
+      // eslint-disable-next-line no-unused-vars
+      for await (const _ of stream);
+    });
+
+    it('should run with coverage and exclude by glob', skipIfNoInspector, async () => {
+      const stream = run({ files, coverage: true, coverageExcludeGlobs: ['test/*/test-runner/invalid-tap.js'] });
+      stream.on('test:fail', common.mustNotCall());
+      stream.on('test:pass', common.mustCall(1));
+      stream.on('test:coverage', common.mustCall(({ summary: { files } }) => {
+        const filesPaths = files.map(({ path }) => path);
+        assert.strictEqual(filesPaths.some((path) => path.includes('test-runner/invalid-tap.js')), false);
+      }));
+      // eslint-disable-next-line no-unused-vars
+      for await (const _ of stream);
+    });
+
+    it('should run with coverage and include by glob', skipIfNoInspector, async () => {
+      const stream = run({ files, coverage: true, coverageIncludeGlobs: ['test/*/test-runner/invalid-tap.js'] });
+      stream.on('test:fail', common.mustNotCall());
+      stream.on('test:pass', common.mustCall(1));
+      stream.on('test:coverage', common.mustCall(({ summary: { files } }) => {
+        const filesPaths = files.map(({ path }) => path);
+        assert.strictEqual(filesPaths.some((path) => path.includes('test-runner/invalid-tap.js')), true);
+      }));
       // eslint-disable-next-line no-unused-vars
       for await (const _ of stream);
     });
