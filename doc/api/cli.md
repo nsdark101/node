@@ -357,6 +357,21 @@ Error: Access to this API has been restricted
 }
 ```
 
+### `--async-context-frame`
+
+<!-- YAML
+added: REPLACEME
+-->
+
+> Stability: 1 - Experimental
+
+Enables the use of AsyncLocalStorage backed by AsyncContextFrame rather than
+the default implementation which relies on async\_hooks. This new model is
+implemented very differently and so could have differences in how context data
+flows within the application. As such, it is presently recommended to be sure
+your application behaviour is unaffected by this change before using it in
+production.
+
 ### `--build-snapshot`
 
 <!-- YAML
@@ -2868,6 +2883,7 @@ one is included in the list below.
 * `--allow-fs-write`
 * `--allow-wasi`
 * `--allow-worker`
+* `--async-context-frame`
 * `--conditions`, `-C`
 * `--diagnostic-dir`
 * `--disable-proto`
