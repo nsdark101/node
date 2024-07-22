@@ -20,7 +20,7 @@ static napi_status validate_and_retrieve_single_string_arg(
 
   NODE_API_ASSERT_STATUS(env,
                          valuetype == napi_string,
-                         "Wrong type of argment. Expects a string.");
+                         "Wrong type of argument. Expects a string.");
 
   return napi_ok;
 }
@@ -310,6 +310,40 @@ static napi_value TestPropertyKeyUtf16AutoLength(napi_env env,
                          auto_length);
 }
 
+static napi_value TestPropertyKeyUtf8(napi_env env, napi_callback_info info) {
+  return TestOneByteImpl(env,
+                         info,
+                         napi_get_value_string_utf8,
+                         node_api_create_property_key_utf8,
+                         actual_length);
+}
+
+static napi_value TestPropertyKeyUtf8AutoLength(napi_env env,
+                                                napi_callback_info info) {
+  return TestOneByteImpl(env,
+                         info,
+                         napi_get_value_string_utf8,
+                         node_api_create_property_key_utf8,
+                         auto_length);
+}
+
+static napi_value TestPropertyKeyLatin1(napi_env env, napi_callback_info info) {
+  return TestOneByteImpl(env,
+                         info,
+                         napi_get_value_string_latin1,
+                         node_api_create_property_key_latin1,
+                         actual_length);
+}
+
+static napi_value TestPropertyKeyLatin1AutoLength(napi_env env,
+                                                  napi_callback_info info) {
+  return TestOneByteImpl(env,
+                         info,
+                         napi_get_value_string_latin1,
+                         node_api_create_property_key_latin1,
+                         auto_length);
+}
+
 static napi_value Utf16Length(napi_env env, napi_callback_info info) {
   napi_value args[1];
   NODE_API_CALL(env, validate_and_retrieve_single_string_arg(env, info, args));
@@ -429,6 +463,12 @@ napi_value Init(napi_env env, napi_value exports) {
       DECLARE_NODE_API_PROPERTY("TestPropertyKeyUtf16", TestPropertyKeyUtf16),
       DECLARE_NODE_API_PROPERTY("TestPropertyKeyUtf16AutoLength",
                                 TestPropertyKeyUtf16AutoLength),
+      DECLARE_NODE_API_PROPERTY("TestPropertyKeyUtf8", TestPropertyKeyUtf8),
+      DECLARE_NODE_API_PROPERTY("TestPropertyKeyUtf8AutoLength",
+                                TestPropertyKeyUtf8AutoLength),
+      DECLARE_NODE_API_PROPERTY("TestPropertyKeyLatin1", TestPropertyKeyLatin1),
+      DECLARE_NODE_API_PROPERTY("TestPropertyKeyLatin1AutoLength",
+                                TestPropertyKeyLatin1AutoLength),
   };
 
   init_test_null(env, exports);

@@ -1718,6 +1718,50 @@ napi_status NAPI_CDECL node_api_create_property_key_utf16(napi_env env,
   });
 }
 
+napi_status node_api_create_property_key_utf8(napi_env env,
+                                              const char* utf8name,
+                                              size_t length,
+                                              napi_value* result) {
+  if (env == nullptr || utf8name == nullptr || result == nullptr) {
+    return napi_invalid_arg;
+  }
+
+  return v8impl::NewString(
+      env, utf8name, length, result, [&](v8::Isolate* isolate) {
+        return v8::String::NewFromUtf8(isolate,
+                                       utf8name,
+                                       v8::NewStringType::kInternalized,
+                                       static_cast<int>(length));
+      });
+}
+
+napi_status node_api_create_property_key_latin1(napi_env env,
+                                                const char* latin1name,
+                                                size_t length,
+                                                napi_value* result) {
+  if (env == nullptr || latin1name == nullptr || result == nullptr) {
+    return napi_invalid_arg;
+  }
+
+  napi_status status =
+      v8impl::NewString(env,
+                        reinterpret_cast<const uint8_t*>(latin1name),
+                        length,
+                        result,
+                        [&](v8::Isolate* isolate) {
+                          return v8::String::NewFromOneByte(
+                              isolate,
+                              reinterpret_cast<const uint8_t*>(latin1name),
+                              v8::NewStringType::kInternalized,
+                              static_cast<int>(length));
+                        });
+  if (status != napi_ok) {
+    return status;
+  }
+
+  return napi_ok;
+}
+
 napi_status NAPI_CDECL napi_create_double(napi_env env,
                                           double value,
                                           napi_value* result) {
